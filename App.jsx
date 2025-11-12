@@ -331,7 +331,7 @@ const App = () => {
     const checkUrl = `${INITIAL_URL}${URL_IDENTIFAIRE}`;
     //console.log('checkUrl==========+>', checkUrl);
 
-    const targetData = new Date('2025-11-04T08:08:00'); //дата з якої поч працювати webView
+    const targetData = new Date('2025-11-14T08:08:00'); //дата з якої поч працювати webView
     const currentData = new Date(); //текущая дата
 
     if (currentData <= targetData) {
@@ -441,13 +441,56 @@ const App = () => {
   useEffect(() => {
     setTimeout(() => {
       setIsLoading(true);
-    }, 5400);
+    }, 2500);
   }, []);
+
+  // Animation state
+  const screenWidth = Dimensions.get('window').width;
+  const slideAnim = useRef(new Animated.Value(0)).current; // 0 .. -screenWidth
+
+  useEffect(() => {
+    // запускаємо анімацію тільки коли компонент лоудера показаний
+    if (!isLoading) {
+      // Слайд від 0 до -screenWidth за 6 секунд
+      Animated.timing(slideAnim, {
+        toValue: -screenWidth,
+        duration: 2000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start(() => {
+        // по завершенні анімації показуємо основний контент
+        //setisLoading(true);
+      });
+    }
+  }, [slideAnim, screenWidth, isLoading]);
 
   return (
     <NavigationContainer>
       <ContextProvider>
-        {!isLoading ? <IceFishLoader /> : <Route isFatch={route} />}
+        {!isLoading ? (
+        <View style={{ flex: 1, overflow: 'hidden' }}>
+          {/* Контейнер шириною у 2 * screenWidth: два зображення поруч */}
+          <Animated.View
+            style={{
+              flexDirection: 'row',
+              width: screenWidth * 2,
+              height: '100%',
+              transform: [{ translateX: slideAnim }],
+            }}
+          >
+            <Image
+              style={{ width: screenWidth, height: '100%' }}
+              source={require('./assets/images/1.png')}
+              resizeMode="cover"
+            />
+            <Image
+              style={{ width: screenWidth, height: '100%' }}
+              source={require('./assets/images/2.png')}
+              resizeMode="cover"
+            />
+          </Animated.View>
+        </View>
+        ) : <Route isFatch={route} />}
       </ContextProvider>
     </NavigationContainer>
   );
